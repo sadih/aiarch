@@ -10,11 +10,21 @@ import fi.zem.aiarch.game.hierarchy.Side;
 import fi.zem.aiarch.game.hierarchy.Situation;
 
 public class SamuBot implements Player {
+	private boolean max;
+	private Object side;
+	private Random rnd;
+
 	public SamuBot(Random rnd) {
 		this.rnd = rnd;
 	}
 	
 	public void start(Engine engine, Side side) {
+		if (engine.getStarter().equals(side)) {
+			this.max = true;
+		} else {
+			this.max = false;
+		}
+		this.side = side;
 	}
 	
 	public Move move(Situation situation, int timeLeft) {
@@ -25,9 +35,14 @@ public class SamuBot implements Player {
 		return moves.get(rnd.nextInt(moves.size()));
 	}
 	
-	private Random rnd;
+	public int evaluate() {
+		
+		return 0;
+	}
+	
+	
 
-	private int maxi( int depth ) {
+	public int maxi( int depth ) {
 		if ( depth == 0 ) return evaluate();
 		int max = -10000;
 		for ( all moves) {
@@ -38,7 +53,7 @@ public class SamuBot implements Player {
 		return max;
 	}
 	
-	private int mini( int depth ) {
+	public  int mini( int depth ) {
 	    if ( depth == 0 ) return -evaluate();
 	    int min = 10000;
 	    for ( all moves) {
@@ -49,7 +64,5 @@ public class SamuBot implements Player {
 	    return min;
 	}
 	
-	private int evaluate () {
-		return 0;
-	}
+
 }
