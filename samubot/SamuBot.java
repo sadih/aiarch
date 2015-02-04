@@ -27,7 +27,7 @@ public class SamuBot implements Player {
 	
 	private Random rnd;
 
-	private static int maxi( int depth ) {
+	private int maxi( int depth ) {
 		if ( depth == 0 ) return evaluate();
 		int max = -10000;
 		for ( all moves) {
@@ -38,7 +38,7 @@ public class SamuBot implements Player {
 		return max;
 	}
 	
-	private static int mini( int depth ) {
+	private int mini( int depth ) {
 	    if ( depth == 0 ) return -evaluate();
 	    int min = 10000;
 	    for ( all moves) {
@@ -49,8 +49,7 @@ public class SamuBot implements Player {
 	    return min;
 	}
 	
-	private static int elavuate () {
+	private int evaluate () {
 		return 0;
-	}
 	}
 }
