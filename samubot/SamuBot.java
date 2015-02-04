@@ -11,7 +11,7 @@ import fi.zem.aiarch.game.hierarchy.Situation;
 
 public class SamuBot implements Player {
 	private boolean max;
-	static int maxDepth = 6;
+	static int maxDepth = 4;
 	private Side side;
 	private Random rnd;
 	private Evaluator evaluator = new Evaluator(); 
@@ -38,7 +38,7 @@ public class SamuBot implements Player {
 		for(Move move: moves){
 			Situation newSituation = situation.copy();
 			newSituation.apply(move);
-			double value = mini(newSituation, maxDepth);
+			double value = mini(newSituation, move, 0);
 			if(value > maxValue){
 				maxValue = value;
 				max = move;
@@ -56,30 +56,34 @@ public class SamuBot implements Player {
 	
 	
 
-	public double maxi(Situation situation, int depth) {
+	public double maxi(Situation situation, Move move, int depth) {
+		System.out.println(depth);
 		double score;
 		List<Move> legalMoves = situation.legal();
-		if ( depth == maxDepth ) return evaluator.evaluate(situation, side, legalMoves);
+		if ( depth == maxDepth ) 
+			return evaluator.evaluate(situation, move, side, legalMoves);
 		double max = -10000;
-		for (Move move: legalMoves) {
+		for (Move newMove: legalMoves) {
 			Situation newSituation = situation.copy();
-			newSituation.apply(move);
-			score = mini(newSituation, depth + 1 );
+			newSituation.apply(newMove);
+			score = mini(newSituation, newMove, depth + 1 );
 			if( score > max )
 				max = score;
 		}
 		return max;
 	}
 	
-	public double mini(Situation situation, int depth) {
+	public double mini(Situation situation, Move move, int depth) {
+		System.out.println(depth);
 		double score;
 		List<Move> legalMoves = situation.legal();
-	    if ( depth == maxDepth ) return -evaluator.evaluate(situation, side, legalMoves);
+	    if ( depth == maxDepth ) 
+	    	return -evaluator.evaluate(situation, move, side, legalMoves);
 	    double min = 10000;
-	    for (Move move: legalMoves) {
+	    for (Move newMove: legalMoves) {
 	    	Situation newSituation = situation.copy();
-			newSituation.apply(move);
-	        score = maxi(newSituation, depth + 1 );
+			newSituation.apply(newMove);
+	        score = maxi(newSituation, newMove, depth + 1 );
 	        if( score < min )
 	            min = score;
 	    }

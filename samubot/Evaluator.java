@@ -19,9 +19,10 @@ public class Evaluator {
 	
 	// Evaluation multipliers
 	double gameWonX = maxValue;
+	double destroyedX = 1;
 
 
-	public double evaluate(Situation situation, Side mySide, List<Move> legalMoves) {
+	public double evaluate(Situation situation, Move move, Side mySide, List<Move> legalMoves) {
 		double result = 0;
 		
 		Side ownSide = mySide;
@@ -31,15 +32,21 @@ public class Evaluator {
 		else {
 			opponentSide = Side.BLUE;
 		}
-		int gameWon = 0;
+//		int gameWon = 0;
 		if (situation.isFinished()) {
 			if (situation.getWinner().equals(ownSide))
-				gameWon = 1;
+				return(maxValue);
+//				gameWon = 1;
 			else if (situation.getWinner().equals(opponentSide)) {
-				gameWon = -1;
+				return(-maxValue);
+//				gameWon = -1;
 			}
 		}
-		result += gameWon*gameWonX;
+//		result+=gameWon*gameWonX;
+		
+		if(move.getType() == MoveType.DESTROY){
+			result+= move.getTarget().getValue()*destroyedX;
+		}
 		
 		return(result);
 	}
