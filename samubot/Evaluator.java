@@ -33,13 +33,6 @@ public class Evaluator {
 	int w;
 	int maxPiece;
 	Side ownSide;
-	
-	//
-//	double currentEval = 0;
-//	double lastEval = 0;
-//	int enemyPieces;
-//	int lastPieceX = -1;
-//	int lastPieceY = -1;
 
 	public Evaluator(double value, Engine engine) {
 		maxEval = value;
@@ -68,14 +61,11 @@ public class Evaluator {
 		}
 		result-=evalSide(situation, move, opponentSide);
 		result+=evalSide(situation, move, ownSide);
-//		lastEval = currentEval;
-//		currentEval = result;
 		return result;
 	}
 	private double evalSide(Situation situation, Move move, Side currentSide){
 		// Evaluation values
 		double result = 0;
-		
 		
 		double ranks = 0;
 		double attackers = 0;
@@ -89,6 +79,7 @@ public class Evaluator {
 		
 		Board board = situation.getBoard();
 		
+		//Determine if opponent has only one piece left
 		int pieceCount = 0;
 		Iterable<Board.Square> enemyPieces = board.pieces(currentSide.opposite());
 		Board.Square lastPiece = null;
@@ -103,47 +94,41 @@ public class Evaluator {
 			lastPiece = currentPiece;
 		}
 		
-		
+		//Go through own pieces
 		Iterable<Board.Square> pieces = board.pieces(currentSide);
 		for (Board.Square square : pieces){
 			
 			int x = square.getX();
 			int y = square.getY();
 			int value = board.get(x, y).getValue();
+			
+			//Sum up piece ranks
 			ranks+=value;
 			if(!board.owner(x, y).equals(currentSide)){
+				//Pieces capable of attacking
 				attackers+=1;
 				if(!situation.isBlocked(x, y)){
+					//Combined attack distance
 					temp=board.firepower(currentSide, x, y);
 					if(temp>0)
 						firepower+=temp;
 				}
+				//If piece is open to attacking side
 				exposed = exposure(currentSide, board, x, y, value);
 				
 					
 			}
+			//Distance of the highest ranking piece from own corner
 			if(value == maxPiece)
 				kingPosition = distanceFromHome(currentSide, x,y);
-//			if(currentSide.equals(ownSide) && lastPieceX > -1){
-//				System.out.print("Finish him! ");
-//				System.out.println(board.get(lastPieceX, lastPieceY).getValue());
-//				distanceToKing = Math.abs(lastPieceX-x)+Math.abs(lastPieceY-y);
-//			}
+			
+			//If only one enemy piece left
 			if(lastPiece != null)
+				//Pieces proximity to the enemy's piece
 				distanceToKing = w-Math.abs(lastPiece.getX()-x)+h-Math.abs(lastPiece.getY()-y);
 		}
 		
-		
-		
-//		if(!currentSide.equals(ownSide) && pieceCount == 1){
-//			lastPieceX = x;
-//			lastPieceY = y;
-//		}else{
-//			lastPieceX = -1;
-//			lastPieceY = -1;
-//		}
-		
-		
+		//Value of a piece under attack
 		if(move.getType() == MoveType.ATTACK){
 			double value = move.getTarget().getValue();
 			if(value==maxPiece)
@@ -183,7 +168,6 @@ public class Evaluator {
 			if(next != null){
 				if(value==6){
 					value = kingValue;
-	//				System.out.println(kingValue);
 				}
 				if(!next.getSide().equals(currentSide))
 					exposed-=value;

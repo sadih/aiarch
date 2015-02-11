@@ -15,7 +15,6 @@ public class SamuBot implements Player {
 	private Random rnd;
 	private Evaluator evaluator;
 	double maxEval= 10000;
-//	Engine engine;
 	
 	public SamuBot(Random rnd) {
 		this.rnd = rnd;
@@ -23,7 +22,6 @@ public class SamuBot implements Player {
 	
 	public void start(Engine engine, Side side) {
 		this.side = side;
-//		this.engine = engine;
 		evaluator = new Evaluator(maxEval, engine); 
 	}
 	
