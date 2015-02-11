@@ -30,22 +30,18 @@ public class Evaluator {
 
 	public double evaluate(Situation situation, Move move, Side ownSide, List<Move> legalMoves) {
 		double result = 0;
-		
-//		Side ownSide = mySide;
+
 		Side opponentSide;
 		if (ownSide == Side.BLUE)
 			opponentSide = Side.RED;
 		else {
 			opponentSide = Side.BLUE;
 		}
-//		int gameWon = 0;
 		if (situation.isFinished()) {
 			if (situation.getWinner().equals(ownSide))
 				return(maxEval);
-//				gameWon = 1;
 			else if (situation.getWinner().equals(opponentSide)) {
 				return(-maxEval);
-//				gameWon = -1;
 			}
 		}
 		result+=evalSide(situation, move, ownSide);
@@ -60,8 +56,6 @@ public class Evaluator {
 		double attackers = 0;
 		double firepower = 0;
 		double attack = 0;
-
-		
 		
 		Board board = situation.getBoard();
 		Iterable<Board.Square> pieces = board.pieces(ownSide);
