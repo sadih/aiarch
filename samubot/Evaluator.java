@@ -57,6 +57,8 @@ public class Evaluator {
 		double firepower = 0;
 		double attack = 0;
 		
+		double temp = 0;
+		
 		Board board = situation.getBoard();
 		Iterable<Board.Square> pieces = board.pieces(ownSide);
 		for (Board.Square square : pieces){
@@ -66,7 +68,9 @@ public class Evaluator {
 			if(!board.owner(x, y).equals(ownSide)){
 				attackers+=1;
 				if(!situation.isBlocked(x, y))
-					firepower+=board.firepower(ownSide, x, y);
+					temp=board.firepower(ownSide, x, y);
+					if(temp>0)
+						firepower+=temp;
 			}
 		}
 		if(move.getType() == MoveType.ATTACK){
