@@ -15,7 +15,9 @@ public class SamuBot implements Player {
 	private Side side;
 	private Random rnd;
 	private Evaluator evaluator = new Evaluator(); 
-
+	double maxEval= 10000;
+	double minEval= -maxEval;
+	
 	public SamuBot(Random rnd) {
 		this.rnd = rnd;
 	}
@@ -32,13 +34,16 @@ public class SamuBot implements Player {
 	
 	public Move move(Situation situation, int timeLeft) {
 //		int depth = 6;
+		double aplha = minEval;
+		double beta = maxEval;
 		List<Move> moves = situation.legal();
 		Move max = situation.makePass();
-		double maxValue = -10000.0;
+		double maxValue = minEval;
 		for(Move move: moves){
 			Situation newSituation = situation.copy();
 			newSituation.apply(move);
-			double value = mini(newSituation, move, 0);
+//			double value = mini(newSituation, move, 0);
+			double value = minimax(newSituation, aplha, beta, move, 0, false);
 			if(value > maxValue){
 				maxValue = value;
 				max = move;
@@ -54,6 +59,40 @@ public class SamuBot implements Player {
 //		return 0;
 //	}
 	
+	public double minimax(Situation situation, double alpha, double beta, Move move, int depth, boolean maxPlayer){
+		double score = 0;
+		List<Move> legalMoves = situation.legal();
+//		if ( depth == maxDepth ) 
+//			return evaluator.evaluate(situation, move, side, legalMoves);
+//		double max = minEval;
+//		double min = maxEval;
+		for (Move newMove: legalMoves) {
+			Situation newSituation = situation.copy();
+			newSituation.apply(newMove);
+			if (depth+1 == maxDepth) 
+				score = evaluator.evaluate(situation, move, side, legalMoves);
+			else
+				score = minimax(newSituation, alpha, beta, newMove, depth + 1, !maxPlayer);
+			if(maxPlayer){
+				if(score > alpha)
+					alpha = score;
+				if(alpha > beta)
+					return beta;
+			}else{
+				if(score < beta)
+					beta = score;
+				if(alpha > beta)
+					return alpha;
+			}
+//				
+//			if( score > max )
+//				max = score;
+//			if( score < min )
+//				min = score;
+		}
+		return score;
+	}
+	
 	
 
 	public double maxi(Situation situation, Move move, int depth) {
@@ -62,7 +101,7 @@ public class SamuBot implements Player {
 		List<Move> legalMoves = situation.legal();
 		if ( depth == maxDepth ) 
 			return evaluator.evaluate(situation, move, side, legalMoves);
-		double max = -10000;
+		double max = minEval;
 		for (Move newMove: legalMoves) {
 			Situation newSituation = situation.copy();
 			newSituation.apply(newMove);
@@ -79,7 +118,7 @@ public class SamuBot implements Player {
 		List<Move> legalMoves = situation.legal();
 	    if ( depth == maxDepth ) 
 	    	return -evaluator.evaluate(situation, move, side, legalMoves);
-	    double min = 10000;
+	    double min = maxEval;
 	    for (Move newMove: legalMoves) {
 	    	Situation newSituation = situation.copy();
 			newSituation.apply(newMove);
