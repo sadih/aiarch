@@ -15,19 +15,21 @@ public class SamuBot implements Player {
 	private Random rnd;
 	private Evaluator evaluator;
 	double maxEval= 10000;
+//	Engine engine;
 	
 	public SamuBot(Random rnd) {
 		this.rnd = rnd;
-		evaluator = new Evaluator(maxEval); 
 	}
 	
 	public void start(Engine engine, Side side) {
 		this.side = side;
+//		this.engine = engine;
+		evaluator = new Evaluator(maxEval, engine); 
 	}
 	
 	public Move move(Situation situation, int timeLeft) {
-		double alpha = -maxEval;
-		double beta = maxEval;
+		double alpha = -maxEval-1;
+		double beta = maxEval+1;
 		List<Move> moves = situation.legal();
 		Move max = situation.makePass();
 		double maxValue = -maxEval;
@@ -58,6 +60,8 @@ public class SamuBot implements Player {
 			else
 				score = minimax(newSituation, alpha, beta, newMove, depth, !maxPlayer);
 			if(maxPlayer){
+				if(score == maxEval)
+					return maxEval;
 				if(score > alpha)
 					alpha = score;
 				if(alpha > beta){
@@ -65,6 +69,8 @@ public class SamuBot implements Player {
 					return beta;
 				}
 			}else{
+				if(score == -maxEval)
+					return -maxEval;
 				if(score < beta)
 					beta = score;
 				if(alpha > beta){
