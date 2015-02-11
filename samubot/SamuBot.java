@@ -26,7 +26,7 @@ public class SamuBot implements Player {
 	}
 	
 	public Move move(Situation situation, int timeLeft) {
-		double aplha = -maxEval;
+		double alpha = -maxEval;
 		double beta = maxEval;
 		List<Move> moves = situation.legal();
 		Move max = situation.makePass();
@@ -34,12 +34,13 @@ public class SamuBot implements Player {
 		for(Move move: moves){
 			Situation newSituation = situation.copy();
 			newSituation.apply(move);
-			double value = minimax(newSituation, aplha, beta, move, 0, false);
-			if(value > maxValue){
-				maxValue = value;
+			double score = minimax(newSituation, alpha, beta, move, 0, false);
+			if(score > alpha){
+				alpha = score;
 				max = move;
 			}
 		}
+		System.out.println(alpha);
 		return max;
 
 	}
@@ -53,20 +54,23 @@ public class SamuBot implements Player {
 			Situation newSituation = situation.copyApply(newMove);
 			if (depth == maxDepth){
 				score = evaluator.evaluate(newSituation, move, side, legalMoves);
-				System.out.println(score);
 			}
 			else
 				score = minimax(newSituation, alpha, beta, newMove, depth, !maxPlayer);
 			if(maxPlayer){
 				if(score > alpha)
 					alpha = score;
-				if(alpha > beta)
+				if(alpha > beta){
+//					System.out.println("Beta cut-off");
 					return beta;
+				}
 			}else{
 				if(score < beta)
 					beta = score;
-				if(alpha > beta)
+				if(alpha > beta){
+//					System.out.println("Aplha cut-off");
 					return alpha;
+				}
 			}
 		}
 		return score;
