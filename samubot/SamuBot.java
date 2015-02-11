@@ -10,16 +10,16 @@ import fi.zem.aiarch.game.hierarchy.Side;
 import fi.zem.aiarch.game.hierarchy.Situation;
 
 public class SamuBot implements Player {
-	private boolean max;
-	static int maxDepth = 4;
+//	private boolean max;
+	static int maxDepth = 3;
 	private Side side;
 	private Random rnd;
-	private Evaluator evaluator = new Evaluator(); 
+	private Evaluator evaluator;
 	double maxEval= 10000;
-	double minEval= -maxEval;
 	
 	public SamuBot(Random rnd) {
 		this.rnd = rnd;
+		evaluator = new Evaluator(maxEval); 
 	}
 	
 	public void start(Engine engine, Side side) {
@@ -34,11 +34,11 @@ public class SamuBot implements Player {
 	
 	public Move move(Situation situation, int timeLeft) {
 //		int depth = 6;
-		double aplha = minEval;
+		double aplha = -maxEval;
 		double beta = maxEval;
 		List<Move> moves = situation.legal();
 		Move max = situation.makePass();
-		double maxValue = minEval;
+		double maxValue = -maxEval;
 		for(Move move: moves){
 			Situation newSituation = situation.copy();
 			newSituation.apply(move);
@@ -49,6 +49,7 @@ public class SamuBot implements Player {
 				max = move;
 			}
 		}
+//		System.out.println(maxValue);
 		return max;
 
 //		return moves.get(rnd.nextInt(moves.size()));
@@ -60,19 +61,22 @@ public class SamuBot implements Player {
 //	}
 	
 	public double minimax(Situation situation, double alpha, double beta, Move move, int depth, boolean maxPlayer){
+		depth+=1;
 		double score = 0;
 		List<Move> legalMoves = situation.legal();
 //		if ( depth == maxDepth ) 
 //			return evaluator.evaluate(situation, move, side, legalMoves);
-//		double max = minEval;
+//		double max = -maxEval;
 //		double min = maxEval;
 		for (Move newMove: legalMoves) {
 			Situation newSituation = situation.copy();
 			newSituation.apply(newMove);
-			if (depth+1 == maxDepth) 
-				score = evaluator.evaluate(situation, move, side, legalMoves);
+			if (depth == maxDepth){
+				score = evaluator.evaluate(newSituation, move, side, legalMoves);
+				System.out.println(score);
+			}
 			else
-				score = minimax(newSituation, alpha, beta, newMove, depth + 1, !maxPlayer);
+				score = minimax(newSituation, alpha, beta, newMove, depth, !maxPlayer);
 			if(maxPlayer){
 				if(score > alpha)
 					alpha = score;
@@ -95,39 +99,39 @@ public class SamuBot implements Player {
 	
 	
 
-	public double maxi(Situation situation, Move move, int depth) {
-		System.out.println(depth);
-		double score;
-		List<Move> legalMoves = situation.legal();
-		if ( depth == maxDepth ) 
-			return evaluator.evaluate(situation, move, side, legalMoves);
-		double max = minEval;
-		for (Move newMove: legalMoves) {
-			Situation newSituation = situation.copy();
-			newSituation.apply(newMove);
-			score = mini(newSituation, newMove, depth + 1 );
-			if( score > max )
-				max = score;
-		}
-		return max;
-	}
-	
-	public double mini(Situation situation, Move move, int depth) {
-		System.out.println(depth);
-		double score;
-		List<Move> legalMoves = situation.legal();
-	    if ( depth == maxDepth ) 
-	    	return -evaluator.evaluate(situation, move, side, legalMoves);
-	    double min = maxEval;
-	    for (Move newMove: legalMoves) {
-	    	Situation newSituation = situation.copy();
-			newSituation.apply(newMove);
-	        score = maxi(newSituation, newMove, depth + 1 );
-	        if( score < min )
-	            min = score;
-	    }
-	    return min;
-	}
-	
+//	public double maxi(Situation situation, Move move, int depth) {
+//		System.out.println(depth);
+//		double score;
+//		List<Move> legalMoves = situation.legal();
+//		if ( depth == maxDepth ) 
+//			return evaluator.evaluate(situation, move, side, legalMoves);
+//		double max = -maxEval;
+//		for (Move newMove: legalMoves) {
+//			Situation newSituation = situation.copy();
+//			newSituation.apply(newMove);
+//			score = mini(newSituation, newMove, depth + 1 );
+//			if( score > max )
+//				max = score;
+//		}
+//		return max;
+//	}
+//	
+//	public double mini(Situation situation, Move move, int depth) {
+//		System.out.println(depth);
+//		double score;
+//		List<Move> legalMoves = situation.legal();
+//	    if ( depth == maxDepth ) 
+//	    	return -evaluator.evaluate(situation, move, side, legalMoves);
+//	    double min = maxEval;
+//	    for (Move newMove: legalMoves) {
+//	    	Situation newSituation = situation.copy();
+//			newSituation.apply(newMove);
+//	        score = maxi(newSituation, newMove, depth + 1 );
+//	        if( score < min )
+//	            min = score;
+//	    }
+//	    return min;
+//	}
+//	
 
 }
