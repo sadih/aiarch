@@ -1,7 +1,12 @@
 package samubot;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import fi.zem.aiarch.game.hierarchy.Engine;
 import fi.zem.aiarch.game.hierarchy.Move;
@@ -10,10 +15,12 @@ import fi.zem.aiarch.game.hierarchy.Side;
 import fi.zem.aiarch.game.hierarchy.Situation;
 
 public class SamuBot implements Player {
-	static int maxDepth = 3;
+	int maxDepth = 3;
 	private Side side;
 	private Random rnd;
 	private Evaluator evaluator;
+	private Map<Move, AtomicInteger> banned;
+	private List<Move> history;
 	double maxEval= 10000;
 	
 	public SamuBot(Random rnd) {
@@ -23,15 +30,31 @@ public class SamuBot implements Player {
 	public void start(Engine engine, Side side) {
 		this.side = side;
 		evaluator = new Evaluator(maxEval, engine); 
+		this.banned = new HashMap(16);
+		this.history = new ArrayList();
 	}
 	
 	public Move move(Situation situation, int timeLeft) {
+		// Banned double moves
+		checkBannedMoves(situation);
+		
+		// Move sorting
+		
+		
 		double alpha = -maxEval-1;
 		double beta = maxEval+1;
 		List<Move> moves = situation.legal();
 		Move max = situation.makePass();
 		double maxValue = -maxEval;
+		int tot = 0;
+		if (moves.size() < 60 && moves.size() > 1) {
+			maxDepth = 3;
+		} else {
+			maxDepth = 3;
+		}
 		for(Move move: moves){
+			tot += 1;
+			// System.out.println(tot);
 			Situation newSituation = situation.copy();
 			newSituation.apply(move);
 			double score = minimax(newSituation, alpha, beta, move, 0, false);
@@ -40,9 +63,38 @@ public class SamuBot implements Player {
 				max = move;
 			}
 		}
+		System.out.println("Jes. "+ tot);
 		System.out.println(alpha);
+		
+		this.history.add(max);
 		return max;
-
+	}
+	
+	private void checkBannedMoves(Situation situation) {
+		Iterator<Move> iterator = this.banned.keySet().iterator();
+		Object unbanMove = null;
+		
+		while(iterator.hasNext()) {
+			Move bannedMove = (Move)iterator.next();
+			int turnsLeft = ((AtomicInteger)this.banned.get(bannedMove)).decrementAndGet();
+			if (turnsLeft == 0) {
+				unbanMove = bannedMove;
+			}
+		}
+		
+		if (unbanMove != null) {
+			this.banned.remove(unbanMove);
+		}
+		
+		// Add the opponents move to the history list
+		if (situation.getPreviousMove() != null) {
+			this.history.add(situation.getPreviousMove());
+		}
+		
+		int i = this.history.size();
+		if ((i >= 6) && (((Move)this.history.get(i-1)).equals(this.history.get(i-5))) && (((Move)this.history.get(i-2)).equals(this.history.get(i-6)))) {
+			this.banned.put(this.history.get(i - 4), new AtomicInteger(8));
+		}
 	}
 	
 	public double minimax(Situation situation, double alpha, double beta, Move move, int depth, boolean maxPlayer){
@@ -51,6 +103,10 @@ public class SamuBot implements Player {
 		List<Move> legalMoves = situation.legal();
 
 		for (Move newMove: legalMoves) {
+			if (this.banned.containsKey(newMove)) {
+				System.out.println("BANNED MOVE FOUND!");
+				continue;
+			}
 			Situation newSituation = situation.copyApply(newMove);
 			if (depth == maxDepth){
 				score = evaluator.evaluate(newSituation, move, side, legalMoves);
