@@ -14,7 +14,9 @@ public class SamuBot implements Player {
 	private Side side;
 	private Random rnd;
 	private Evaluator evaluator;
+	private OpeningBook openingBook;
 	double maxEval= 10000;
+	Boolean inOpeningBook = true;
 	
 	public SamuBot(Random rnd) {
 		this.rnd = rnd;
@@ -22,10 +24,24 @@ public class SamuBot implements Player {
 	
 	public void start(Engine engine, Side side) {
 		this.side = side;
+		openingBook = new OpeningBook(engine, side);
 		evaluator = new Evaluator(maxEval, engine); 
 	}
 	
 	public Move move(Situation situation, int timeLeft) {
+		
+		//Take a move from opening book if one exists
+		if(inOpeningBook){
+			Move move = openingBook.getMove(situation);
+			if (move != null){
+				System.out.println("In opening book");
+				return move;
+			}
+			else
+				inOpeningBook = false; //If no move is found, never check the opening book again
+		}
+		
+		//Select move with miniMax
 		double alpha = -maxEval-1;
 		double beta = maxEval+1;
 		List<Move> moves = situation.legal();
