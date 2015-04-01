@@ -104,7 +104,7 @@ public class Evaluator {
 			
 			//Sum up piece ranks
 			ranks+=value;
-			if(!board.owner(x, y).equals(currentSide)){
+			if(!board.owner(x, y).equals(currentSide)){ //not in own starting area
 				//Pieces capable of attacking
 				attackers+=1;
 				if(!situation.isBlocked(x, y)){
