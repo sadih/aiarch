@@ -1,6 +1,7 @@
 package samubot;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -65,6 +66,7 @@ public class SamuBot implements Player {
 		double alpha = -maxEval-1;
 		double beta = maxEval+1;
 		List<Move> moves = situation.legal();
+		ScoredMove[] scoredMoves = scoreMoves(situation, moves);
 		Move max = situation.makePass();
 		double maxValue = -maxEval;
 		int tot = 0;
@@ -73,15 +75,15 @@ public class SamuBot implements Player {
 		} else {
 			maxDepth = 3;
 		}
-		for(Move move: moves){
+		for(ScoredMove move: scoredMoves){
 			tot += 1;
 			// System.out.println(tot);
 			Situation newSituation = situation.copy();
-			newSituation.apply(move);
-			double score = minimax(newSituation, alpha, beta, move, 0, false);
+			newSituation.apply(move.move);
+			double score = minimax(newSituation, alpha, beta, move.move, 0, false);
 			if(score > alpha){
 				alpha = score;
-				max = move;
+				max = move.move;
 			}
 		}
 //		System.out.println("Jes. "+ tot);
@@ -161,5 +163,40 @@ public class SamuBot implements Player {
 			}
 		}
 		return score;
+	}
+	
+	private ScoredMove[] scoreMoves(Situation situation, List<Move> moves){
+		ScoredMove[] scoredMoves = new ScoredMove[moves.size()];
+		Iterator<Move> iterator = moves.iterator();
+		int totMoves = 0;
+		while (iterator.hasNext()) {
+			Move evaluate = (Move)iterator.next();
+			Situation applied = situation.copy();
+			applied.apply(evaluate);
+//			int moveScore = evaluator.scoreMove(situation, applied, evaluate);
+			int moveScore = (int)evaluator.evaluate(applied, evaluate, side, moves);
+			scoredMoves[totMoves++] = new ScoredMove(evaluate, moveScore, applied);
+		}
+		
+		Arrays.sort(scoredMoves);
+		return scoredMoves;
+		
+	}
+	
+	private class ScoredMove
+		implements Comparable<ScoredMove> {
+		public Move move;
+		public int score;
+		public Situation situation;
+		
+		public ScoredMove(Move move, int score, Situation situation) {
+			this.move = move;
+			this.score = score;
+			this.situation = situation;
+		}
+	
+		public int compareTo(ScoredMove compare) {
+			return compare.score - this.score;
+		}
 	}
 }
