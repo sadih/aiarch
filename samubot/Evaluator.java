@@ -67,15 +67,17 @@ public class Evaluator {
 		// Evaluation values
 		double result = 0;
 		
-		double ranks = 0;
-		double attackers = 0;
-		double firepower = 0;
-		double attack = 0;
-		double exposed = 0;
-		double kingPosition = 0;
-		int distanceToKing = 0;
+//		double ranks = 0;
+//		double attackers = 0;
+//		double firepower = 0;
+//		
+//		double exposed = 0;
+//		double kingPosition = 0;
+//		int distanceToKing = 0;
 		
-		double temp = 0;
+		double attack = 0;
+		
+//		double temp = 0;
 		
 		Board board = situation.getBoard();
 		
@@ -97,35 +99,35 @@ public class Evaluator {
 		//Go through own pieces
 		Iterable<Board.Square> pieces = board.pieces(currentSide);
 		for (Board.Square square : pieces){
-			
-			int x = square.getX();
-			int y = square.getY();
-			int value = board.get(x, y).getValue();
-			
-			//Sum up piece ranks
-			ranks+=value;
-			if(!board.owner(x, y).equals(currentSide)){ //not in own starting area
-				//Pieces capable of attacking
-				attackers+=1;
-				if(!situation.isBlocked(x, y)){
-					//Combined attack distance
-					temp=board.firepower(currentSide, x, y);
-					if(temp>0)
-						firepower+=temp;
-				}
-				//If piece is open to attacking side
-				exposed = exposure(currentSide, board, x, y, value);
-				
-					
-			}
-			//Distance of the highest ranking piece from own corner
-			if(value == maxPiece)
-				kingPosition = distanceFromHome(currentSide, x,y);
-			
-			//If only one enemy piece left
-			if(lastPiece != null)
-				//Pieces proximity to the enemy's piece
-				distanceToKing = w-Math.abs(lastPiece.getX()-x)+h-Math.abs(lastPiece.getY()-y);
+			result+=evalPiece(situation, move, currentSide, board, square, lastPiece);
+//			int x = square.getX();
+//			int y = square.getY();
+//			int value = board.get(x, y).getValue();
+//			
+//			//Sum up piece ranks
+//			ranks+=value;
+//			if(!board.owner(x, y).equals(currentSide)){ //not in own starting area
+//				//Pieces capable of attacking
+//				attackers+=1;
+//				if(!situation.isBlocked(x, y)){
+//					//Combined attack distance
+//					temp=board.firepower(currentSide, x, y);
+//					if(temp>0)
+//						firepower+=temp;
+//				}
+//				//If piece is open to attacking side
+//				exposed = exposure(currentSide, board, x, y, value);
+//				
+//					
+//			}
+//			//Distance of the highest ranking piece from own corner
+//			if(value == maxPiece)
+//				kingPosition = distanceFromHome(currentSide, x,y);
+//			
+//			//If only one enemy piece left
+//			if(lastPiece != null)
+//				//Pieces proximity to the enemy's piece
+//				distanceToKing = w-Math.abs(lastPiece.getX()-x)+h-Math.abs(lastPiece.getY()-y);
 		}
 		
 		//Value of a piece under attack
@@ -139,6 +141,58 @@ public class Evaluator {
 		
 		result+= attack*attackX;
 		
+//		result+=ranks*ranksX;
+//		result+=attackers*attackersX;
+//		result+=firepower*firepowerX;
+//		result+=exposed*exposedX;
+//		result+=kingPosition*kingPositionX;
+//		result+=distanceToKing*distanceToKingX;
+		
+		return(result);
+	}
+	
+	private double evalPiece(Situation situation, Move move, Side currentSide, Board board, Board.Square square, Board.Square lastPiece){
+		double ranks = 0;
+		double attackers = 0;
+		double firepower = 0;
+		
+		double exposed = 0;
+		double kingPosition = 0;
+		int distanceToKing = 0;
+		
+		
+		int x = square.getX();
+		int y = square.getY();
+		int value = board.get(x, y).getValue();
+		
+		double temp = 0;
+		
+		//Sum up piece ranks
+		ranks+=value;
+		if(!board.owner(x, y).equals(currentSide)){ //not in own starting area
+			//Pieces capable of attacking
+			attackers+=1;
+			if(!situation.isBlocked(x, y)){
+				//Combined attack distance
+				temp=board.firepower(currentSide, x, y);
+				if(temp>0)
+					firepower+=temp;
+			}
+			//If piece is open to attacking side
+			exposed = exposure(currentSide, board, x, y, value);
+			
+				
+		}
+		//Distance of the highest ranking piece from own corner
+		if(value == maxPiece)
+			kingPosition = distanceFromHome(currentSide, x,y);
+		
+		//If only one enemy piece left
+		if(lastPiece != null)
+			//Pieces proximity to the enemy's piece
+			distanceToKing = w-Math.abs(lastPiece.getX()-x)+h-Math.abs(lastPiece.getY()-y);
+		
+		double result = 0;
 		result+=ranks*ranksX;
 		result+=attackers*attackersX;
 		result+=firepower*firepowerX;
@@ -146,7 +200,8 @@ public class Evaluator {
 		result+=kingPosition*kingPositionX;
 		result+=distanceToKing*distanceToKingX;
 		
-		return(result);
+		return result;
+		
 	}
 	
 	private int distanceFromHome(Side currentSide, int x, int y){
