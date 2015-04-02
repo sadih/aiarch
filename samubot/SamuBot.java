@@ -25,6 +25,9 @@ public class SamuBot implements Player {
 	double maxEval= 10000;
 	Boolean inOpeningBook = true;
 	
+	int bluePieces;
+	int redPieces;
+	
 	public SamuBot(Random rnd) {
 		this.rnd = rnd;
 	}
@@ -35,10 +38,15 @@ public class SamuBot implements Player {
 		evaluator = new Evaluator(maxEval, engine); 
 		this.banned = new HashMap(16);
 		this.history = new ArrayList();
+		
+		int maxPiece = engine.getMaxPiece();
+		int pieces = maxPiece*(1+maxPiece)/2; //arithmetic sum
+		bluePieces = pieces;
+		redPieces = pieces;
 	}
 	
 	public Move move(Situation situation, int timeLeft) {
-
+		Long time0 = System.currentTimeMillis();
 		//Take a move from opening book if one exists
 		if(inOpeningBook){
 			Move move = openingBook.getMove(situation);
@@ -76,10 +84,16 @@ public class SamuBot implements Player {
 				max = move;
 			}
 		}
-		System.out.println("Jes. "+ tot);
-		System.out.println(alpha);
+//		System.out.println("Jes. "+ tot);
+//		System.out.println(alpha);
 		
 		this.history.add(max);
+		
+		Long time1 = System.currentTimeMillis();
+		System.out.print(time1 - time0);
+		System.out.print("; ");
+		System.out.println(alpha);
+		
 		return max;
 	}
 	
@@ -117,7 +131,7 @@ public class SamuBot implements Player {
 
 		for (Move newMove: legalMoves) {
 			if (this.banned.containsKey(newMove)) {
-				System.out.println("BANNED MOVE FOUND!");
+//				System.out.println("BANNED MOVE FOUND!");
 				continue;
 			}
 			Situation newSituation = situation.copyApply(newMove);
