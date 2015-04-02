@@ -46,6 +46,10 @@ public class SamuBot implements Player {
 		redPieces = pieces;
 	}
 	
+//	private int  getDepth(){
+//		
+//	}
+	
 	public Move move(Situation situation, int timeLeft) {
 		Long time0 = System.currentTimeMillis();
 		//Take a move from opening book if one exists

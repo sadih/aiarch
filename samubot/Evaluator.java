@@ -59,11 +59,12 @@ public class Evaluator {
 				return(-maxEval);
 			}
 		}
-		result-=evalSide(situation, move, opponentSide);
-		result+=evalSide(situation, move, ownSide);
+		result+=evalSide(situation, move);
+//		result-=evalSide(situation, move, opponentSide);
+//		result+=evalSide(situation, move, ownSide);
 		return result;
 	}
-	private double evalSide(Situation situation, Move move, Side currentSide){
+	private double evalSide(Situation situation, Move move){
 		// Evaluation values
 		double result = 0;
 		
@@ -83,7 +84,7 @@ public class Evaluator {
 		
 		//Determine if opponent has only one piece left
 		int pieceCount = 0;
-		Iterable<Board.Square> enemyPieces = board.pieces(currentSide.opposite());
+		Iterable<Board.Square> enemyPieces = board.pieces(ownSide.opposite());
 		Board.Square lastPiece = null;
 		Board.Square currentPiece = null;
 		for (Board.Square square : enemyPieces){
@@ -96,14 +97,23 @@ public class Evaluator {
 			lastPiece = currentPiece;
 		}
 		
+		double score;
 		//Go through own pieces
-		Iterable<Board.Square> pieces = board.pieces(currentSide);
+		Iterable<Board.Square> pieces = board.pieces(ownSide);
 		for (Board.Square square : pieces){
-			result+=evalPiece(situation, move, currentSide, board, square, lastPiece);
+			score = evalPiece(situation, ownSide, board, square, lastPiece);
+			result+= score;
+		}
+		
+		//Go through enemy pieces
+		pieces = board.pieces(ownSide.opposite());
+		for (Board.Square square : pieces){
+			score = evalPiece(situation, ownSide.opposite(), board, square, null);
+			result+= score;
 		}
 		
 		//Value of a piece under attack
-		if(move.getType() == MoveType.ATTACK && move.getPlayer().equals(currentSide)){
+		if(move.getType() == MoveType.ATTACK && move.getPlayer().equals(ownSide)){
 			double value = move.getTarget().getValue();
 			if(value==maxPiece)
 				value = kingValue;
@@ -116,7 +126,7 @@ public class Evaluator {
 		return(result);
 	}
 	
-	private double evalPiece(Situation situation, Move move, Side currentSide, Board board, Board.Square square, Board.Square lastPiece){
+	private double evalPiece(Situation situation, Side currentSide, Board board, Board.Square square, Board.Square lastPiece){
 		// Evaluation values
 		double ranks = 0;
 		double attackers = 0;
@@ -166,7 +176,10 @@ public class Evaluator {
 		result+=kingPosition*kingPositionX;
 		result+=distanceToKing*distanceToKingX;
 		
-		return result;
+		if(currentSide.equals(ownSide))
+			return result;
+		else
+			return -result;
 		
 	}
 	
