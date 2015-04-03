@@ -208,7 +208,8 @@ public class SamuBot implements Player {
 	public double minimax(Situation situation, double alpha, double beta, Move move, int depth, boolean maxPlayer, double oldEval){
 		depth+=1;
 		double score = 0;
-		double score2 = 0;
+//		double score2 = 0;
+		double delta;
 		List<Move> legalMoves = situation.legal();
 		int moveCount = legalMoves.size();
 		if(depth == 1 && !enemyTested){
@@ -230,9 +231,13 @@ public class SamuBot implements Player {
 			
 			
 			Situation newSituation = situation.copyApply(newMove);
-			score2 = evaluator.evalDelta(situation, newMove, newSituation);
+//			delta = evaluator.evalDelta(situation, newMove, newSituation);
+//			score2 = oldEval + 
 			if (depth == iterationDepth){
 				score = evaluator.evaluate(newSituation, newMove);
+//				System.out.printf("%.2f -> %.2f <> %.2f", oldEval, delta + oldEval, score);
+//				System.out.println();
+//				score = delta + oldEval;
 			}
 			else
 				score = minimax(newSituation, alpha, beta, newMove, depth, !maxPlayer, score);

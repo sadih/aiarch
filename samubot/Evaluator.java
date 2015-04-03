@@ -98,32 +98,32 @@ public class Evaluator {
 		Board board = situation.getBoard();
 		
 		//Determine if opponent has only one piece left
-		int pieceCount = 0;
-		Iterable<Board.Square> enemyPieces = board.pieces(ownSide.opposite());
-		Board.Square lastPiece = null;
-		Board.Square currentPiece = null;
-		for (Board.Square square : enemyPieces){
-			if(pieceCount > 1)
-				break;
-			pieceCount++;
-			currentPiece = square;
-		}
-		if(pieceCount == 1 && currentPiece != null){
-			lastPiece = currentPiece;
-		}
+//		int pieceCount = 0;
+//		Iterable<Board.Square> enemyPieces = board.pieces(ownSide.opposite());
+//		Board.Square lastPiece = null;
+//		Board.Square currentPiece = null;
+//		for (Board.Square square : enemyPieces){
+//			if(pieceCount > 1)
+//				break;
+//			pieceCount++;
+//			currentPiece = square;
+//		}
+//		if(pieceCount == 1 && currentPiece != null){
+//			lastPiece = currentPiece;
+//		}
 		
 		double score;
 		//Go through own pieces
 		Iterable<Board.Square> pieces = board.pieces(ownSide);
 		for (Board.Square square : pieces){
-			score = evalPiece(situation, ownSide, board, square.getX(), square.getY(), lastPiece);
+			score = evalPiece(situation, ownSide, board, square.getX(), square.getY());//, lastPiece);
 			result+= score;
 		}
 		
 		//Go through enemy pieces
 		pieces = board.pieces(ownSide.opposite());
 		for (Board.Square square : pieces){
-			score = evalPiece(situation, ownSide.opposite(), board, square.getX(), square.getY(), null);
+			score = evalPiece(situation, ownSide.opposite(), board, square.getX(), square.getY());//, null);
 			result+= score;
 		}
 		
@@ -141,7 +141,7 @@ public class Evaluator {
 		return(result);
 	}
 	
-	private double evalPiece(Situation situation, Side currentSide, Board board, int x, int y, Board.Square lastPiece){
+	private double evalPiece(Situation situation, Side currentSide, Board board, int x, int y){//, Board.Square lastPiece){
 		// Evaluation values
 		double ranks = 0;
 		double attackers = 0;
@@ -178,10 +178,10 @@ public class Evaluator {
 		if(value == maxPiece)
 			kingPosition = distanceFromHome(currentSide, x,y);
 		
-		//If only one enemy piece left
-		if(lastPiece != null)
-			//Pieces proximity to the enemy's piece
-			distanceToKing = w-Math.abs(lastPiece.getX()-x)+h-Math.abs(lastPiece.getY()-y);
+//		//If only one enemy piece left
+//		if(lastPiece != null)
+//			//Pieces proximity to the enemy's piece
+//			distanceToKing = w-Math.abs(lastPiece.getX()-x)+h-Math.abs(lastPiece.getY()-y);
 		
 		double result = 0;
 		result+=ranks*ranksX;
@@ -221,17 +221,30 @@ public class Evaluator {
 		double oldScore, newScore;
 		Side side;
 		
-		
-		for(int i=0;i<10;i++){
+		//Old scores
+		for(int i=0;i<5;i++){
 			try{
 				x = xs[i];
 				y = ys[i];
 				if(tested.contains(10*x+y))
 					continue;
 				side = board.get(x,y).getSide();
-				oldScore = evalPiece(situation, side, board, x, y, null);
-				newScore = evalPiece(newSituation, side, newBoard, x, y, null);
-				totalChange+= newScore-oldScore;
+				oldScore = evalPiece(situation, side, board, x, y);//, null);
+				totalChange -= oldScore;
+				tested.add(10*x+y);
+			}catch(Exception e){
+	
+			}
+		}
+		for(int i=0;i<5;i++){
+			try{
+				x = xs[i];
+				y = ys[i];
+				if(tested.contains(10*x+y))
+					continue;
+				side = board.get(x,y).getSide();
+				newScore = evalPiece(newSituation, side, newBoard, x, y);//, null);
+				totalChange+= newScore;
 				tested.add(10*x+y);
 			}catch(Exception e){
 	
