@@ -53,6 +53,7 @@ public class Evaluator {
 			opponentSide = Side.BLUE;
 		}
 		if (situation.isFinished()) {
+//			System.out.println(move);
 			if (situation.getWinner().equals(ownSide))
 				return(maxEval);
 			else if (situation.getWinner().equals(opponentSide)) {

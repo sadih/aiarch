@@ -16,7 +16,7 @@ import fi.zem.aiarch.game.hierarchy.Side;
 import fi.zem.aiarch.game.hierarchy.Situation;
 
 public class SamuBot implements Player {
-	int maxDepth = 4;
+	int maxDepth = 5;
 	private Side side;
 	private Random rnd;
 	private Evaluator evaluator;
@@ -26,15 +26,13 @@ public class SamuBot implements Player {
 	double maxEval= 10000;
 	Boolean inOpeningBook = true;
 	
-	private double moveAplha = 0.2;
-	private double timeAplha = 0.2;
+	private double moveAplha = 0.1;
+	private double timeAplha = 0.1;
 	private double myMoveEstimate = 40.0;
 	private double enemyMoveEstimate = 40.0;
-//	private double moveActual = 40.0;
 	private double timeEstimate = 500.0;
-//	private double enetimeEstimate = 500.0;
-//	private double timeActual = 500.0;
-	private double timeGoal = 5*1000;
+	private double timeGoal = 1*1000;
+	private Boolean enemyTested = false;
 //	private int cooldown = 0;
 	
 	int iterationDepth = 3;
@@ -74,17 +72,15 @@ public class SamuBot implements Player {
 	private void updateEnemyMoveEstimate(int moveCount){
 		double moves = (double)moveCount;
 		double newMoves = moveAplha*moves + (1-moveAplha)*enemyMoveEstimate;
+//		System.out.printf("%.2f + %.2f -> %.2f", enemyMoveEstimate, moves, newMoves);
+//		System.out.println();
 		enemyMoveEstimate = newMoves;
 	}
-//		
-//		System.out.printf("- %.2f; %.2f", newMoves, newTime);
-//		System.out.println();
+
 	private void updateDepth(){
 		double moves;
-//		cooldown--;
-//		if(cooldown > 0)
-//			return;
-		if(iterationDepth%2 == 1)
+
+		if(iterationDepth%2 == 0)
 			moves = myMoveEstimate;
 		else
 			moves = enemyMoveEstimate;
@@ -96,6 +92,8 @@ public class SamuBot implements Player {
 		}
 			
 		else if(timeEstimate*moves < timeGoal && iterationDepth < maxDepth){
+			System.out.printf("%.2f; %.2f; %.2f", timeEstimate, moves, timeEstimate*moves);
+			System.out.println();
 			iterationDepth++;
 			timeEstimate = timeEstimate*moves;
 //			cooldown = 5;
@@ -135,6 +133,7 @@ public class SamuBot implements Player {
 //		} else {
 //			maxDepth = 3;
 //		}
+		enemyTested = false;
 		for(ScoredMove move: scoredMoves){
 			tot += 1;
 			// System.out.println(tot);
@@ -155,14 +154,9 @@ public class SamuBot implements Player {
 		int timeSpent = (int)(time1 - time0);
 		updateTimeEstimate(timeSpent);
 		updateMyMoveEstimate(moveCount);
-		System.out.printf("%d; %d; %.2f", iterationDepth, timeSpent, alpha);
-		System.out.println();
+//		System.out.printf("%d; %d; %.2f", iterationDepth, timeSpent, alpha);
+//		System.out.println();
 		updateDepth();
-//		System.out.print(iterationDepth);
-//		System.out.print("; ");
-//		System.out.print(timeSpent);
-//		System.out.print("; ");
-//		System.out.println(alpha);
 		
 		return max;
 	}
@@ -198,8 +192,11 @@ public class SamuBot implements Player {
 		depth+=1;
 		double score = 0;
 		List<Move> legalMoves = situation.legal();
-		if(depth == 1)
+		if(depth == 1 && !enemyTested){
 			updateEnemyMoveEstimate(legalMoves.size());
+			enemyTested = true;
+		}
+			
 
 		for (Move newMove: legalMoves) {
 			if (this.banned.containsKey(newMove)) {
