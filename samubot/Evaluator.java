@@ -25,7 +25,8 @@ public class Evaluator {
 	double attackX = 0.5;
 	double exposedX = 0.25;
 	double kingPositionX = -1;
-	double distanceToKingX = 1;
+	double enemyMovesX = 0;
+//	double distanceToKingX = 1;
 	
 	//Other
 	int kingValue = 100;
@@ -121,22 +122,30 @@ public class Evaluator {
 		}
 		
 		//Go through enemy pieces
-		pieces = board.pieces(ownSide.opposite());
+		int count = 0;
+		pieces = board.pieces(opponentSide);
 		for (Board.Square square : pieces){
-			score = evalPiece(situation, ownSide.opposite(), board, square.getX(), square.getY());//, null);
+			count++;
+			score = evalPiece(situation, opponentSide, board, square.getX(), square.getY());//, null);
 			result+= score;
 		}
+		if(count <= 1 && situation.getTurn().equals(opponentSide))
+			result+= situation.getMoves()*enemyMovesX;
+			
 		
-//		//Value of a piece under attack
-//		if(move.getType() == MoveType.ATTACK && move.getPlayer().equals(ownSide)){
-//			double value = move.getTarget().getValue();
-//			if(value==maxPiece)
-//				value = kingValue;
-//			attack+= value;
-//		}
-//		
-//		
-//		result+= attack*attackX;
+		//Value of a piece under attack
+		if(move.getType() == MoveType.ATTACK){
+			double value = move.getTarget().getValue();
+			if(value==maxPiece)
+				value = kingValue;
+			if(move.getPlayer().equals(ownSide))
+				attack+= value;
+			else
+				attack-= value;
+		}
+		
+		
+		result+= attack*attackX;
 		
 		return(result);
 	}
@@ -189,7 +198,7 @@ public class Evaluator {
 		result+=firepower*firepowerX;
 		result+=exposed*exposedX;
 		result+=kingPosition*kingPositionX;
-		result+=distanceToKing*distanceToKingX;
+//		result+=distanceToKing*distanceToKingX;
 		
 		if(currentSide.equals(ownSide))
 			return result;
