@@ -18,7 +18,6 @@ public class Evaluator {
 	double maxEval;
 	
 	// Evaluation multipliers
-//	double gameWonX;
 	double ranksX = 1;
 	double attackersX = 1;
 	double firepowerX = 0.2;
@@ -26,7 +25,6 @@ public class Evaluator {
 	double exposedX = 0.25;
 	double kingPositionX = -1;
 	double enemyMovesX = 0;
-//	double distanceToKingX = 1;
 	
 	//Other
 	int kingValue = 100;
@@ -40,7 +38,6 @@ public class Evaluator {
 
 	public Evaluator(double value, Engine engine, Side side) {
 		maxEval = value;
-//		gameWonX = maxEval;
 		h = engine.getBoardHeight();
 		w = engine.getBoardWidth();
 		maxPiece = engine.getMaxPiece();
@@ -55,63 +52,23 @@ public class Evaluator {
 
 	public double evaluate(Situation situation, Move move) {
 		double result = 0;
-//		this.ownSide = ownSide;
-//		Side opponentSide;
-//		if (ownSide == Side.BLUE)
-//			opponentSide = Side.RED;
-//		else {
-//			opponentSide = Side.BLUE;
-//		}
 		if (situation.isFinished()) {
-//			System.out.println(move);
 			if (situation.getWinner().equals(ownSide)){
-//				System.out.println("winning");
 				return(maxEval);
 			}
 			else if (situation.getWinner().equals(opponentSide)) {
-//				System.out.print(ownSide);
-//				System.out.print(", ");
-//				System.out.println(opponentSide);
 				return(-maxEval);
 			}
 		}
 		result+=evalSide(situation, move);
-//		result-=evalSide(situation, move, opponentSide);
-//		result+=evalSide(situation, move, ownSide);
 		return result;
 	}
 	private double evalSide(Situation situation, Move move){
 		// Evaluation values
 		double result = 0;
-		
-//		double ranks = 0;
-//		double attackers = 0;
-//		double firepower = 0;
-//		
-//		double exposed = 0;
-//		double kingPosition = 0;
-//		int distanceToKing = 0;
-		
-		double attack = 0;
-		
-//		double temp = 0;
+//		double attack = 0;
 		
 		Board board = situation.getBoard();
-		
-		//Determine if opponent has only one piece left
-//		int pieceCount = 0;
-//		Iterable<Board.Square> enemyPieces = board.pieces(ownSide.opposite());
-//		Board.Square lastPiece = null;
-//		Board.Square currentPiece = null;
-//		for (Board.Square square : enemyPieces){
-//			if(pieceCount > 1)
-//				break;
-//			pieceCount++;
-//			currentPiece = square;
-//		}
-//		if(pieceCount == 1 && currentPiece != null){
-//			lastPiece = currentPiece;
-//		}
 		
 		double score;
 		//Go through own pieces
@@ -129,6 +86,8 @@ public class Evaluator {
 			score = evalPiece(situation, opponentSide, board, square.getX(), square.getY());//, null);
 			result+= score;
 		}
+		
+		//If only one enemy piece, try to limit its moves
 		if(count <= 1 && situation.getTurn().equals(opponentSide))
 			result+= situation.legal(opponentSide).size()*enemyMovesX;
 			
@@ -160,9 +119,6 @@ public class Evaluator {
 		double kingPosition = 0;
 		int distanceToKing = 0;
 		
-		
-//		int x = square.getX();
-//		int y = square.getY();
 		int value = board.get(x, y).getValue();
 		
 		double temp = 0;
