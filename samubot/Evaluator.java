@@ -133,19 +133,19 @@ public class Evaluator {
 			result+= situation.getMoves()*enemyMovesX;
 			
 		
-		//Value of a piece under attack
-		if(move.getType() == MoveType.ATTACK){
-			double value = move.getTarget().getValue();
-			if(value==maxPiece)
-				value = kingValue;
-			if(move.getPlayer().equals(ownSide))
-				attack+= value;
-			else
-				attack-= value;
-		}
-		
-		
-		result+= attack*attackX;
+//		//Value of a piece under attack
+//		if(move.getType() == MoveType.ATTACK){
+//			double value = move.getTarget().getValue();
+//			if(value==maxPiece)
+//				value = kingValue;
+//			if(move.getPlayer().equals(ownSide))
+//				attack+= value;
+//			else
+//				attack-= value;
+//		}
+//		
+//		
+//		result+= attack*attackX;
 		
 		return(result);
 	}
