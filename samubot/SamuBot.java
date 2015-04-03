@@ -25,13 +25,14 @@ public class SamuBot implements Player {
 	private OpeningBook openingBook;
 	double maxEval= 10000;
 	Boolean inOpeningBook = true;
+	int turnCount = 0;
 	
 	private double moveAplha = 0.1;
 	private double timeAplha = 0.1;
 	private double myMoveEstimate = 40.0;
 	private double enemyMoveEstimate = 40.0;
 	private double timeEstimate = 500.0;
-	private double timeGoal = 1*1000;
+	private double timeGoal = 3*1000;
 	private Boolean enemyTested = false;
 //	private int cooldown = 0;
 	
@@ -47,7 +48,7 @@ public class SamuBot implements Player {
 	public void start(Engine engine, Side side) {
 		this.side = side;
 		openingBook = new OpeningBook(engine, side);
-		evaluator = new Evaluator(maxEval, engine); 
+		evaluator = new Evaluator(maxEval, engine, side); 
 		this.banned = new HashMap(16);
 		this.history = new ArrayList();
 		
@@ -92,8 +93,8 @@ public class SamuBot implements Player {
 		}
 			
 		else if(timeEstimate*moves < timeGoal && iterationDepth < maxDepth){
-			System.out.printf("%.2f; %.2f; %.2f", timeEstimate, moves, timeEstimate*moves);
-			System.out.println();
+//			System.out.printf("%.2f; %.2f; %.2f", timeEstimate, moves, timeEstimate*moves);
+//			System.out.println();
 			iterationDepth++;
 			timeEstimate = timeEstimate*moves;
 //			cooldown = 5;
@@ -103,6 +104,7 @@ public class SamuBot implements Player {
 	}
 	
 	public Move move(Situation situation, int timeLeft) {
+		turnCount++;
 		Long time0 = System.currentTimeMillis();
 		//Take a move from opening book if one exists
 		if(inOpeningBook){
@@ -126,25 +128,39 @@ public class SamuBot implements Player {
 //		System.out.println(moveCount);
 		ScoredMove[] scoredMoves = scoreMoves(situation, moves);
 		Move max = situation.makePass();
-		double maxValue = -maxEval;
-		int tot = 0;
+//		double maxValue = -maxEval;
+//		int tot = 0;
 //		if (moveCount < 60 && moveCount > 1) {
 //			maxDepth = 3;
 //		} else {
 //			maxDepth = 3;
 //		}
+//		List<Move> bestPath = new ArrayList<Move>();
+//		if(turnCount >= 96)
+//			System.out.println("Test this");
 		enemyTested = false;
 		for(ScoredMove move: scoredMoves){
-			tot += 1;
+//			tot += 1;
 			// System.out.println(tot);
 			Situation newSituation = situation.copy();
 			newSituation.apply(move.move);
 			double score = minimax(newSituation, alpha, beta, move.move, 0, false);
+			if(score >= maxEval){
+//				alpha = score;
+				max = move.move;
+				alpha = score;
+//				bestPath.add(max);
+				break;
+			}
 			if(score > alpha){
 				alpha = score;
 				max = move.move;
 			}
 		}
+		if(alpha >= maxEval){
+			System.out.println(max);
+		}
+//			System.out.println(turnCount);
 //		System.out.println("Jes. "+ tot);
 //		System.out.println(alpha);
 		
@@ -154,8 +170,8 @@ public class SamuBot implements Player {
 		int timeSpent = (int)(time1 - time0);
 		updateTimeEstimate(timeSpent);
 		updateMyMoveEstimate(moveCount);
-//		System.out.printf("%d; %d; %.2f", iterationDepth, timeSpent, alpha);
-//		System.out.println();
+		System.out.printf("%d; %d; %.2f", iterationDepth, timeSpent, alpha);
+		System.out.println();
 		updateDepth();
 		
 		return max;
@@ -192,11 +208,17 @@ public class SamuBot implements Player {
 		depth+=1;
 		double score = 0;
 		List<Move> legalMoves = situation.legal();
+		int moveCount = legalMoves.size();
 		if(depth == 1 && !enemyTested){
-			updateEnemyMoveEstimate(legalMoves.size());
+			updateEnemyMoveEstimate(moveCount);
 			enemyTested = true;
 		}
-			
+		if(moveCount == 0){
+			if(maxPlayer){
+				return -maxEval;
+			}else
+				return maxEval;
+		}
 
 		for (Move newMove: legalMoves) {
 			if (this.banned.containsKey(newMove)) {
@@ -205,13 +227,15 @@ public class SamuBot implements Player {
 			}
 			Situation newSituation = situation.copyApply(newMove);
 			if (depth == iterationDepth){
-				score = evaluator.evaluate(newSituation, move, side, legalMoves);
+				score = evaluator.evaluate(newSituation, newMove);
 			}
 			else
 				score = minimax(newSituation, alpha, beta, newMove, depth, !maxPlayer);
 			if(maxPlayer){
-				if(score == maxEval)
+				if(score >= maxEval){
+//					bestPath.add(newMove);
 					return maxEval;
+				}
 				if(score > alpha)
 					alpha = score;
 				if(alpha > beta){
@@ -219,7 +243,7 @@ public class SamuBot implements Player {
 					return beta;
 				}
 			}else{
-				if(score == -maxEval)
+				if(score <= -maxEval)
 					return -maxEval;
 				if(score < beta)
 					beta = score;
@@ -241,7 +265,7 @@ public class SamuBot implements Player {
 			Situation applied = situation.copy();
 			applied.apply(evaluate);
 //			int moveScore = evaluator.scoreMove(situation, applied, evaluate);
-			int moveScore = (int)evaluator.evaluate(applied, evaluate, side, moves);
+			int moveScore = (int)evaluator.evaluate(applied, evaluate);
 			scoredMoves[totMoves++] = new ScoredMove(evaluate, moveScore, applied);
 		}
 		

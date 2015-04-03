@@ -16,7 +16,7 @@ public class Evaluator {
 	double maxEval;
 	
 	// Evaluation multipliers
-	double gameWonX;
+//	double gameWonX;
 	double ranksX = 1;
 	double attackersX = 1;
 	double firepowerX = 0.2;
@@ -33,30 +33,42 @@ public class Evaluator {
 	int w;
 	int maxPiece;
 	Side ownSide;
+	Side opponentSide;
 
-	public Evaluator(double value, Engine engine) {
+	public Evaluator(double value, Engine engine, Side side) {
 		maxEval = value;
-		gameWonX = maxEval;
+//		gameWonX = maxEval;
 		h = engine.getBoardHeight();
 		w = engine.getBoardWidth();
 		maxPiece = engine.getMaxPiece();
-	}
-
-
-	public double evaluate(Situation situation, Move move, Side ownSide, List<Move> legalMoves) {
-		double result = 0;
-		this.ownSide = ownSide;
-		Side opponentSide;
+		ownSide = side;
 		if (ownSide == Side.BLUE)
 			opponentSide = Side.RED;
 		else {
 			opponentSide = Side.BLUE;
 		}
+	}
+
+
+	public double evaluate(Situation situation, Move move) {
+		double result = 0;
+//		this.ownSide = ownSide;
+//		Side opponentSide;
+//		if (ownSide == Side.BLUE)
+//			opponentSide = Side.RED;
+//		else {
+//			opponentSide = Side.BLUE;
+//		}
 		if (situation.isFinished()) {
 //			System.out.println(move);
-			if (situation.getWinner().equals(ownSide))
+			if (situation.getWinner().equals(ownSide)){
+				System.out.println("winning");
 				return(maxEval);
+			}
 			else if (situation.getWinner().equals(opponentSide)) {
+//				System.out.print(ownSide);
+//				System.out.print(", ");
+//				System.out.println(opponentSide);
 				return(-maxEval);
 			}
 		}
