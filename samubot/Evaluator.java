@@ -130,7 +130,7 @@ public class Evaluator {
 			result+= score;
 		}
 		if(count <= 1 && situation.getTurn().equals(opponentSide))
-			result+= situation.getMoves()*enemyMovesX;
+			result+= situation.legal(opponentSide).size()*enemyMovesX;
 			
 		
 //		//Value of a piece under attack
