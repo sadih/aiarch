@@ -32,10 +32,10 @@ public class SamuBot implements Player {
 	private double enemyMoveEstimate = 40.0;
 //	private double moveActual = 40.0;
 	private double timeEstimate = 500.0;
-	private double enetimeEstimate = 500.0;
+//	private double enetimeEstimate = 500.0;
 //	private double timeActual = 500.0;
 	private double timeGoal = 5*1000;
-	private int cooldown = 0;
+//	private int cooldown = 0;
 	
 	int iterationDepth = 3;
 	
@@ -81,9 +81,9 @@ public class SamuBot implements Player {
 //		System.out.println();
 	private void updateDepth(){
 		double moves;
-		cooldown--;
-		if(cooldown > 0)
-			return;
+//		cooldown--;
+//		if(cooldown > 0)
+//			return;
 		if(iterationDepth%2 == 1)
 			moves = myMoveEstimate;
 		else
@@ -91,12 +91,14 @@ public class SamuBot implements Player {
 		
 		if(timeEstimate > timeGoal && iterationDepth > 2){
 			iterationDepth--;
-			cooldown = 5;
+			timeEstimate = timeEstimate/moves;
+//			cooldown = 5;
 		}
 			
 		else if(timeEstimate*moves < timeGoal && iterationDepth < maxDepth){
 			iterationDepth++;
-			cooldown = 5;
+			timeEstimate = timeEstimate*moves;
+//			cooldown = 5;
 		}
 			
 		return;
@@ -153,9 +155,9 @@ public class SamuBot implements Player {
 		int timeSpent = (int)(time1 - time0);
 		updateTimeEstimate(timeSpent);
 		updateMyMoveEstimate(moveCount);
-		updateDepth();
 		System.out.printf("%d; %d; %.2f", iterationDepth, timeSpent, alpha);
 		System.out.println();
+		updateDepth();
 //		System.out.print(iterationDepth);
 //		System.out.print("; ");
 //		System.out.print(timeSpent);
