@@ -144,7 +144,7 @@ public class SamuBot implements Player {
 			// System.out.println(tot);
 			Situation newSituation = situation.copy();
 			newSituation.apply(move.move);
-			double score = minimax(newSituation, alpha, beta, move.move, 0, false);
+			double score = minimax(newSituation, alpha, beta, move.move, 0, false, move.score);
 			if(score >= maxEval){
 //				alpha = score;
 				max = move.move;
@@ -157,9 +157,10 @@ public class SamuBot implements Player {
 				max = move.move;
 			}
 		}
-		if(alpha >= maxEval){
-			System.out.println(max);
-		}
+//		if(alpha >= maxEval){
+//			System.out.println(situation);
+//			System.out.println(max);
+//		}
 //			System.out.println(turnCount);
 //		System.out.println("Jes. "+ tot);
 //		System.out.println(alpha);
@@ -204,9 +205,10 @@ public class SamuBot implements Player {
 		}
 	}
 	
-	public double minimax(Situation situation, double alpha, double beta, Move move, int depth, boolean maxPlayer){
+	public double minimax(Situation situation, double alpha, double beta, Move move, int depth, boolean maxPlayer, double oldEval){
 		depth+=1;
 		double score = 0;
+		double score2 = 0;
 		List<Move> legalMoves = situation.legal();
 		int moveCount = legalMoves.size();
 		if(depth == 1 && !enemyTested){
@@ -225,12 +227,15 @@ public class SamuBot implements Player {
 //				System.out.println("BANNED MOVE FOUND!");
 				continue;
 			}
+			
+			
 			Situation newSituation = situation.copyApply(newMove);
+			score2 = evaluator.evalDelta(situation, newMove, newSituation);
 			if (depth == iterationDepth){
 				score = evaluator.evaluate(newSituation, newMove);
 			}
 			else
-				score = minimax(newSituation, alpha, beta, newMove, depth, !maxPlayer);
+				score = minimax(newSituation, alpha, beta, newMove, depth, !maxPlayer, score);
 			if(maxPlayer){
 				if(score >= maxEval){
 //					bestPath.add(newMove);

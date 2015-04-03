@@ -9,6 +9,8 @@ import fi.zem.aiarch.game.hierarchy.MoveType;
 import fi.zem.aiarch.game.hierarchy.Piece;
 import fi.zem.aiarch.game.hierarchy.Side;
 import fi.zem.aiarch.game.hierarchy.Situation;
+
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -62,7 +64,7 @@ public class Evaluator {
 		if (situation.isFinished()) {
 //			System.out.println(move);
 			if (situation.getWinner().equals(ownSide)){
-				System.out.println("winning");
+//				System.out.println("winning");
 				return(maxEval);
 			}
 			else if (situation.getWinner().equals(opponentSide)) {
@@ -114,32 +116,32 @@ public class Evaluator {
 		//Go through own pieces
 		Iterable<Board.Square> pieces = board.pieces(ownSide);
 		for (Board.Square square : pieces){
-			score = evalPiece(situation, ownSide, board, square, lastPiece);
+			score = evalPiece(situation, ownSide, board, square.getX(), square.getY(), lastPiece);
 			result+= score;
 		}
 		
 		//Go through enemy pieces
 		pieces = board.pieces(ownSide.opposite());
 		for (Board.Square square : pieces){
-			score = evalPiece(situation, ownSide.opposite(), board, square, null);
+			score = evalPiece(situation, ownSide.opposite(), board, square.getX(), square.getY(), null);
 			result+= score;
 		}
 		
-		//Value of a piece under attack
-		if(move.getType() == MoveType.ATTACK && move.getPlayer().equals(ownSide)){
-			double value = move.getTarget().getValue();
-			if(value==maxPiece)
-				value = kingValue;
-			attack+= value;
-		}
-		
-		
-		result+= attack*attackX;
+//		//Value of a piece under attack
+//		if(move.getType() == MoveType.ATTACK && move.getPlayer().equals(ownSide)){
+//			double value = move.getTarget().getValue();
+//			if(value==maxPiece)
+//				value = kingValue;
+//			attack+= value;
+//		}
+//		
+//		
+//		result+= attack*attackX;
 		
 		return(result);
 	}
 	
-	private double evalPiece(Situation situation, Side currentSide, Board board, Board.Square square, Board.Square lastPiece){
+	private double evalPiece(Situation situation, Side currentSide, Board board, int x, int y, Board.Square lastPiece){
 		// Evaluation values
 		double ranks = 0;
 		double attackers = 0;
@@ -150,8 +152,8 @@ public class Evaluator {
 		int distanceToKing = 0;
 		
 		
-		int x = square.getX();
-		int y = square.getY();
+//		int x = square.getX();
+//		int y = square.getY();
 		int value = board.get(x, y).getValue();
 		
 		double temp = 0;
@@ -193,6 +195,50 @@ public class Evaluator {
 			return result;
 		else
 			return -result;
+		
+	}
+	
+	public double evalDelta(Situation situation, Move move, Situation newSituation) {
+		Board board = situation.getBoard();
+		Board newBoard = newSituation.getBoard();
+		double totalChange = 0;
+		Piece piece = move.getPiece();
+		if(piece == null) //pass
+			return 0.0;
+		Coord from = move.getFrom();
+		int x0 = from.getX();
+		int y0 = from.getY();
+		Coord to = move.getTo();
+		int x1 = to.getX();
+		int y1 = to.getY();
+		
+		HashSet<Integer> tested = new HashSet<Integer>();
+		
+		int[] xs = {x0, x0-1, x0+1, x0,   x0,   x1, x1-1, x1+1, x1,   x1};
+		int[] ys = {y0, y0,   y0,   y0-1, y0+1, y1, y1,   y1,   y1-1, y1+1};
+		
+		int x, y;
+		double oldScore, newScore;
+		Side side;
+		
+		
+		for(int i=0;i<10;i++){
+			try{
+				x = xs[i];
+				y = ys[i];
+				if(tested.contains(10*x+y))
+					continue;
+				side = board.get(x,y).getSide();
+				oldScore = evalPiece(situation, side, board, x, y, null);
+				newScore = evalPiece(newSituation, side, newBoard, x, y, null);
+				totalChange+= newScore-oldScore;
+				tested.add(10*x+y);
+			}catch(Exception e){
+	
+			}
+		}
+		return totalChange;
+		
 		
 	}
 	
