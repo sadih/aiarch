@@ -1,18 +1,11 @@
 package samubot;
 
 import fi.zem.aiarch.game.hierarchy.Board;
-import fi.zem.aiarch.game.hierarchy.Board.Square;
-import fi.zem.aiarch.game.hierarchy.Coord;
 import fi.zem.aiarch.game.hierarchy.Engine;
 import fi.zem.aiarch.game.hierarchy.Move;
-import fi.zem.aiarch.game.hierarchy.MoveType;
 import fi.zem.aiarch.game.hierarchy.Piece;
 import fi.zem.aiarch.game.hierarchy.Side;
 import fi.zem.aiarch.game.hierarchy.Situation;
-
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 
 public class Evaluator {
 	double maxEval;
@@ -65,9 +58,7 @@ public class Evaluator {
 	}
 	private double evalSide(Situation situation, Move move){
 		// Evaluation values
-		double result = 0;
-//		double attack = 0;
-		
+		double result = 0;		
 		Board board = situation.getBoard();
 		
 		double score;
@@ -90,21 +81,6 @@ public class Evaluator {
 		//If only one enemy piece, try to limit its moves
 		if(count <= 1 && situation.getTurn().equals(opponentSide))
 			result+= situation.legal(opponentSide).size()*enemyMovesX;
-			
-		
-//		//Value of a piece under attack
-//		if(move.getType() == MoveType.ATTACK){
-//			double value = move.getTarget().getValue();
-//			if(value==maxPiece)
-//				value = kingValue;
-//			if(move.getPlayer().equals(ownSide))
-//				attack+= value;
-//			else
-//				attack-= value;
-//		}
-//		
-//		
-//		result+= attack*attackX;
 		
 		return(result);
 	}
@@ -117,7 +93,6 @@ public class Evaluator {
 		
 		double exposed = 0;
 		double kingPosition = 0;
-		int distanceToKing = 0;
 		
 		int value = board.get(x, y).getValue();
 		
@@ -143,10 +118,6 @@ public class Evaluator {
 		if(value == maxPiece)
 			kingPosition = distanceFromHome(currentSide, x,y);
 		
-//		//If only one enemy piece left
-//		if(lastPiece != null)
-//			//Pieces proximity to the enemy's piece
-//			distanceToKing = w-Math.abs(lastPiece.getX()-x)+h-Math.abs(lastPiece.getY()-y);
 		
 		double result = 0;
 		result+=ranks*ranksX;
@@ -154,69 +125,11 @@ public class Evaluator {
 		result+=firepower*firepowerX;
 		result+=exposed*exposedX;
 		result+=kingPosition*kingPositionX;
-//		result+=distanceToKing*distanceToKingX;
 		
 		if(currentSide.equals(ownSide))
 			return result;
 		else
 			return -result;
-		
-	}
-	
-	public double evalDelta(Situation situation, Move move, Situation newSituation) {
-		Board board = situation.getBoard();
-		Board newBoard = newSituation.getBoard();
-		double totalChange = 0;
-		Piece piece = move.getPiece();
-		if(piece == null) //pass
-			return 0.0;
-		Coord from = move.getFrom();
-		int x0 = from.getX();
-		int y0 = from.getY();
-		Coord to = move.getTo();
-		int x1 = to.getX();
-		int y1 = to.getY();
-		
-		HashSet<Integer> tested = new HashSet<Integer>();
-		
-		int[] xs = {x0, x0-1, x0+1, x0,   x0,   x1, x1-1, x1+1, x1,   x1};
-		int[] ys = {y0, y0,   y0,   y0-1, y0+1, y1, y1,   y1,   y1-1, y1+1};
-		
-		int x, y;
-		double oldScore, newScore;
-		Side side;
-		
-		//Old scores
-		for(int i=0;i<5;i++){
-			try{
-				x = xs[i];
-				y = ys[i];
-				if(tested.contains(10*x+y))
-					continue;
-				side = board.get(x,y).getSide();
-				oldScore = evalPiece(situation, side, board, x, y);//, null);
-				totalChange -= oldScore;
-				tested.add(10*x+y);
-			}catch(Exception e){
-	
-			}
-		}
-		for(int i=0;i<5;i++){
-			try{
-				x = xs[i];
-				y = ys[i];
-				if(tested.contains(10*x+y))
-					continue;
-				side = board.get(x,y).getSide();
-				newScore = evalPiece(newSituation, side, newBoard, x, y);//, null);
-				totalChange+= newScore;
-				tested.add(10*x+y);
-			}catch(Exception e){
-	
-			}
-		}
-		return totalChange;
-		
 		
 	}
 	

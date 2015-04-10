@@ -18,7 +18,6 @@ import fi.zem.aiarch.game.hierarchy.Situation;
 public class SamuBot implements Player {
 	int maxDepth = 5;
 	private Side side;
-	private Random rnd;
 	private Evaluator evaluator;
 	private Map<Move, AtomicInteger> banned;
 	private List<Move> history;
@@ -41,7 +40,6 @@ public class SamuBot implements Player {
 	int redPieces;
 	
 	public SamuBot(Random rnd) {
-		this.rnd = rnd;
 	}
 	
 	public void start(Engine engine, Side side) {
@@ -82,7 +80,8 @@ public class SamuBot implements Player {
 			moves = myMoveEstimate;
 		else
 			moves = enemyMoveEstimate;
-		
+		System.out.printf("timeEstimate: %f; timeGoal: %f; moves: %f", timeEstimate, timeGoal, moves);
+		System.out.println();
 		if(timeEstimate > timeGoal && iterationDepth > 2){
 			iterationDepth--;
 			timeEstimate = timeEstimate/moves;
@@ -94,6 +93,33 @@ public class SamuBot implements Player {
 		}
 			
 		return;
+	}
+	
+	private void checkBannedMoves(Situation situation) {
+		Iterator<Move> iterator = this.banned.keySet().iterator();
+		Object unbanMove = null;
+		
+		while(iterator.hasNext()) {
+			Move bannedMove = (Move)iterator.next();
+			int turnsLeft = ((AtomicInteger)this.banned.get(bannedMove)).decrementAndGet();
+			if (turnsLeft == 0) {
+				unbanMove = bannedMove;
+			}
+		}
+		
+		if (unbanMove != null) {
+			this.banned.remove(unbanMove);
+		}
+		
+		// Add the opponents move to the history list
+		if (situation.getPreviousMove() != null) {
+			this.history.add(situation.getPreviousMove());
+		}
+		
+		int size = this.history.size();
+		if ((size >= 6) && (((Move)this.history.get(size-1)).equals(this.history.get(size-5))) && (((Move)this.history.get(size-2)).equals(this.history.get(size-6)))) {
+			this.banned.put(this.history.get(size - 4), new AtomicInteger(8));
+		}
 	}
 	
 	public Move move(Situation situation, int timeLeft) {
@@ -124,8 +150,8 @@ public class SamuBot implements Player {
 		enemyTested = false;
 		for(ScoredMove move: scoredMoves){
 
-			Situation newSituation = situation.copy();
-			newSituation.apply(move.move);
+			Situation newSituation = situation.copyApply(move.move);
+			
 			double score = minimax(newSituation, alpha, beta, move.move, 0, false, move.score);
 			if(score >= maxEval){
 				max = move.move;
@@ -137,7 +163,6 @@ public class SamuBot implements Player {
 				max = move.move;
 			}
 		}
-
 		
 		this.history.add(max);
 		
@@ -153,40 +178,15 @@ public class SamuBot implements Player {
 		return max;
 	}
 	
-	private void checkBannedMoves(Situation situation) {
-		Iterator<Move> iterator = this.banned.keySet().iterator();
-		Object unbanMove = null;
-		
-		while(iterator.hasNext()) {
-			Move bannedMove = (Move)iterator.next();
-			int turnsLeft = ((AtomicInteger)this.banned.get(bannedMove)).decrementAndGet();
-			if (turnsLeft == 0) {
-				unbanMove = bannedMove;
-			}
-		}
-		
-		if (unbanMove != null) {
-			this.banned.remove(unbanMove);
-		}
-		
-		// Add the opponents move to the history list
-		if (situation.getPreviousMove() != null) {
-			this.history.add(situation.getPreviousMove());
-		}
-		
-		int i = this.history.size();
-		if ((i >= 6) && (((Move)this.history.get(i-1)).equals(this.history.get(i-5))) && (((Move)this.history.get(i-2)).equals(this.history.get(i-6)))) {
-			this.banned.put(this.history.get(i - 4), new AtomicInteger(8));
-		}
-	}
+
 	
 	public double minimax(Situation situation, double alpha, double beta, Move move, int depth, boolean maxPlayer, double oldEval){
 		depth+=1;
 		double score = 0;
-//		double score2 = 0;
-		double delta;
 		List<Move> legalMoves = situation.legal();
 		int moveCount = legalMoves.size();
+		
+		//ScoredMove[] scoredMoves = scoreMoves(situation, legalMoves);
 		if(depth == 1 && !enemyTested){
 			updateEnemyMoveEstimate(moveCount);
 			enemyTested = true;
@@ -198,24 +198,25 @@ public class SamuBot implements Player {
 				return maxEval;
 		}
 
+		//for (ScoredMove newMove: scoredMoves) {
 		for (Move newMove: legalMoves) {
+			//if (this.banned.containsKey(newMove.move)) {
 			if (this.banned.containsKey(newMove)) {
-//				System.out.println("BANNED MOVE FOUND!");
 				continue;
-			}
-			
+			}			
 			
 			Situation newSituation = situation.copyApply(newMove);
-//			delta = evaluator.evalDelta(situation, newMove, newSituation);
-//			score2 = oldEval + 
+			
 			if (depth == iterationDepth){
+				//score = evaluator.evaluate(newSituation, newMove.move);
 				score = evaluator.evaluate(newSituation, newMove);
-//				System.out.printf("%.2f -> %.2f <> %.2f", oldEval, delta + oldEval, score);
-//				System.out.println();
-//				score = delta + oldEval;
+
 			}
-			else
+			else {
+				//score = minimax(newSituation, alpha, beta, newMove.move, depth, !maxPlayer, score);
 				score = minimax(newSituation, alpha, beta, newMove, depth, !maxPlayer, score);
+				
+			}
 			if(maxPlayer){
 				if(score >= maxEval){
 					return maxEval;
@@ -223,7 +224,6 @@ public class SamuBot implements Player {
 				if(score > alpha)
 					alpha = score;
 				if(alpha > beta){
-//					System.out.println("Beta cut-off");
 					return beta;
 				}
 			}else{
@@ -232,7 +232,6 @@ public class SamuBot implements Player {
 				if(score < beta)
 					beta = score;
 				if(alpha > beta){
-//					System.out.println("Aplha cut-off");
 					return alpha;
 				}
 			}
@@ -242,32 +241,25 @@ public class SamuBot implements Player {
 	
 	private ScoredMove[] scoreMoves(Situation situation, List<Move> moves){
 		ScoredMove[] scoredMoves = new ScoredMove[moves.size()];
-		Iterator<Move> iterator = moves.iterator();
 		int totMoves = 0;
-		while (iterator.hasNext()) {
-			Move evaluate = (Move)iterator.next();
+		for (Move evaluate: moves) {
 			Situation applied = situation.copy();
 			applied.apply(evaluate);
-//			int moveScore = evaluator.scoreMove(situation, applied, evaluate);
 			int moveScore = (int)evaluator.evaluate(applied, evaluate);
-			scoredMoves[totMoves++] = new ScoredMove(evaluate, moveScore, applied);
+			scoredMoves[totMoves++] = new ScoredMove(evaluate, moveScore);
 		}
-		
 		Arrays.sort(scoredMoves);
 		return scoredMoves;
-		
 	}
 	
 	private class ScoredMove
 		implements Comparable<ScoredMove> {
 		public Move move;
 		public int score;
-		public Situation situation;
 		
-		public ScoredMove(Move move, int score, Situation situation) {
+		public ScoredMove(Move move, int score) {
 			this.move = move;
 			this.score = score;
-			this.situation = situation;
 		}
 	
 		public int compareTo(ScoredMove compare) {
